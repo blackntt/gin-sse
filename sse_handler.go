@@ -27,15 +27,18 @@ type SSEHandler struct {
 
 	// Channel into which messages are pushed to be broadcast out
 	messages chan string
+
+	event string
 }
 
 // Make a new SSEHandler instance.
-func NewSSEHandler() *SSEHandler {
+func NewSSEHandler(event string) *SSEHandler {
 	b := &SSEHandler{
 		clients:        make(map[chan string]bool),
 		newClients:     make(chan (chan string)),
 		defunctClients: make(chan (chan string)),
 		messages:       make(chan string, 10), // buffer 10 msgs and don't block sends
+		event:          event,
 	}
 	return b
 }
@@ -107,7 +110,7 @@ func (b *SSEHandler) Subscribe(c *gin.Context) {
 			break
 		}
 
-		fmt.Fprintf(w, "data: Message: %s\n\n", msg)
+		fmt.Fprintf(w, "event: %s\ndata: Message: %s\n\n", b.event, msg)
 		// Flush the response. This is only possible if the repsonse
 		// supports streaming.
 		f.Flush()
